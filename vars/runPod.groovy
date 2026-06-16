@@ -7,6 +7,7 @@ def call(Map args, Closure body) {
   def devShm     = args.devShm ?: false;
   def mounts     = args.mounts ?: [:];
   def image      = args.image ?: imageName(args.tag ?: "latest");
+  def checkoutscm = args.checkout ?: true;
 
   def spec = [
     'imagePullSecrets': [['name': 'registry-auth']],
@@ -66,7 +67,9 @@ def call(Map args, Closure body) {
   def yaml = writeYaml(returnText: true, data: ['spec': spec])
   podTemplate(inheritFrom: 'jnlp', yaml: yaml) {
     node(POD_LABEL) {
-      checkout scm
+      if (checkoutscm) {
+        checkout scm
+      }
       container('main') {
         body.call()
       }
