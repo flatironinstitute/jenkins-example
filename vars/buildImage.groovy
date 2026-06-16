@@ -3,12 +3,11 @@ def call(Map args) {
   def dockerfile = args.dockerfile ?: "Dockerfile";
   def buildArgs  = args.buildArgs ?: "";
   def prep       = args.prep;
-  def checkoutscm = args.checkout ?: true;
   String image = imageName(args.tag ?: "latest")
 
   podTemplate(inheritFrom: 'podman', showRawYaml: false) {
     node(POD_LABEL) {
-      if (checkoutscm) {
+      if (args.checkout != false) {
         checkout scm
       }
       container('main') {
