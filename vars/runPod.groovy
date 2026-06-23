@@ -5,6 +5,7 @@ def call(Map args, Closure body) {
   def gpus       = args.gpus ?: 0;
   def gpuType    = args.gpuType;
   def devShm     = args.devShm ?: false;
+  def emulation  = args.emulation ?: false;
   def mounts     = args.mounts ?: [:];
   def image      = args.image ?: imageName(args.tag ?: "latest");
 
@@ -35,6 +36,9 @@ def call(Map args, Closure body) {
   cpuType.each { cput ->
     spec['nodeSelector']["feature.node.kubernetes.io/cpu-cpuid.${cput.toUpperCase()}"] = "true"
   }
+
+  if (emulation)
+    spec['nodeSelector']['qemu-binfmt'] = "true"
 
   if (gpus) {
     spec['runtimeClassName'] = 'nvidia'
