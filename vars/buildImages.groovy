@@ -5,12 +5,12 @@ def call(Map args, List<Map> images) {
         checkout scm
       }
       container('main') {
-        images.each { image ->
-          def context    = image.context ?: ".";
-          def dockerfile = image.dockerfile ?: "Dockerfile";
-          def buildArgs  = image.buildArgs ?: "";
-          def prep       = image.prep;
-          String image = imageName(image.tag ?: "latest")
+        images.each { img ->
+          def context    = img.context ?: ".";
+          def dockerfile = img.dockerfile ?: "Dockerfile";
+          def buildArgs  = img.buildArgs ?: "";
+          def prep       = img.prep;
+          String image = imageName(img.tag ?: "latest")
 
           if (prep) {
             def extra = prep.call()
