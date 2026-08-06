@@ -1,3 +1,4 @@
 String call(String tag = "latest") {
-  return "$REGISTRY_PREFIX/${JOB_NAME.toLowerCase()}:$tag"
+  def name = env.JOB_NAME.toLowerCase().replaceAll('%2f', '/')
+  return "$REGISTRY_PREFIX/$name:$tag"
 }
