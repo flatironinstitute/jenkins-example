@@ -6,12 +6,24 @@ def call(Map args, Closure body) {
   def gpuType    = args.gpuType;
   def devShm     = args.devShm ?: false;
   def emulation  = args.emulation ?: false;
+  def exclusive  = args.exclusive ?: false;
   def mounts     = args.mounts ?: [:];
   def image      = args.image ?: imageName(args.tag ?: "latest");
 
+  def metadata = [
+    'labels': [:]
+  ]
   def spec = [
     'imagePullSecrets': [['name': 'registry-auth']],
     'nodeSelector': [:],
+    'affinity': [
+      'podAntiAffinity': [
+        'requiredDuringSchedulingIgnoredDuringExecution': [[
+          'topologyKey': 'kubernetes.io/hostname',
+          'labelSelector': [
+            'matchExpressions': [[
+              'key': 'exclusive',
+              'operator': 'Exists' ]] ] ]] ] ],
     'volumes': [],
     'containers': [[
       'name': 'main',
@@ -40,6 +52,11 @@ def call(Map args, Closure body) {
   if (emulation)
     spec['nodeSelector']['qemu-binfmt'] = "true"
 
+  if (exclusive) {
+    spec['nodeSelector']['exclusive'] = "performance"
+    metadata['labels']['exclusive'] = "performance"
+  }
+
   if (gpus) {
     spec['runtimeClassName'] = 'nvidia'
     if (gpuType) {
@@ -67,7 +84,7 @@ def call(Map args, Closure body) {
       'mountPath': path]
   }
 
-  def yaml = writeYaml(returnText: true, data: ['spec': spec])
+  def yaml = writeYaml(returnText: true, data: ['spec': spec, 'metadata': metadata])
   podTemplate(inheritFrom: 'jnlp', yaml: yaml) {
     node(POD_LABEL) {
       if (args.checkout != false) {
