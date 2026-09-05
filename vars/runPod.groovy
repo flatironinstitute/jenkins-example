@@ -7,6 +7,7 @@ def call(Map args, Closure body) {
   def devShm     = args.devShm ?: false;
   def emulation  = args.emulation ?: false;
   def exclusive  = args.exclusive ?: false;
+  def matlab     = args.matlab ?: false;
   def mounts     = args.mounts ?: [:];
   def image      = args.image ?: imageName(args.tag ?: "latest");
 
@@ -72,6 +73,11 @@ def call(Map args, Closure body) {
     spec['containers'][0]['volumeMounts'] << [
       'name': 'devshm',
       'mountPath': '/dev/shm']
+  }
+
+  if (matlab) {
+    metadata['labels']['jenkins-matlab'] = 'true'
+    spec['containers'][0]['envFrom'] = [['secretRef': ['name': 'jenkins-matlab']]]
   }
 
   mounts.each { pvc, path ->
